@@ -7,16 +7,18 @@ output: ggplot_exercises
 
 
 ```{r}
-install.packages('BiocManager')
-BiocManager::install('multtest')
-install.packages('Seurat')
-install.packages("ggplot2")
+#install.packages('BiocManager')
+#BiocManager::install('multtest')
+#install.packages('Seurat')
+#install.packages("ggplot2")
+#install.packages("devEMF")
 
 ```
 
 ggplot exercises
 1. dowloading data
 ```{r}
+
 acs <- readRDS(url("https://sscc.wisc.edu/sscc/pubs/dvr/acs.rds"))
 acs_small <- readRDS(url("https://sscc.wisc.edu/sscc/pubs/dvr/acs_small.rds"))
 library(ggplot2)
