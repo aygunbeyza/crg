@@ -1,0 +1,363 @@
+---
+title: "crg_examples"
+author: "beyza"
+date: "2025-05-20"
+output: ggplot_exercises
+---
+
+
+```{r}
+install.packages('BiocManager')
+BiocManager::install('multtest')
+install.packages('Seurat')
+install.packages("ggplot2")
+
+```
+
+ggplot exercises
+1. dowloading data
+```{r}
+acs <- readRDS(url("https://sscc.wisc.edu/sscc/pubs/dvr/acs.rds"))
+acs_small <- readRDS(url("https://sscc.wisc.edu/sscc/pubs/dvr/acs_small.rds"))
+library(ggplot2)
+```
+
+2. ggplot Building Blocks
+aes (short for aesthetic)
+| Term                  | Meaning                                     |
+| --------------------- | ------------------------------------------- |
+| `ggplot()`            | Starts a new plot                           |
+| `aes()`               | Connects variables to the plot              |
+| `geom_*()`            | Chooses the type of plot (bar, point, etc.) |
+| `+`                   | Adds parts to the plot                      |
+| `inherit.aes = FALSE` | Ignores the general mapping settings        |
+
+
+```{r}
+ggplot(acs, aes(x = edu)) +
+  geom_bar()
+```
+
+geom_bar() draws a bar chart and counts the values for you automatically.
+"stat_count() counts the values first, then shows them as bars.
+```{r}
+ggplot(acs, aes(x = edu)) +
+  stat_count()
+```
+```{r}
+ggplot(acs, aes(x = age, y = log(income))) +
+  geom_abline(color = "red", intercept = 7, slope = .05, size = 3, linetype = 3) +
+  geom_point() +
+  geom_hline(color = "gold", yintercept = 10, size = 3, linetype = 2) +
+  geom_smooth(se = F, size = 3)
+```
+```{r}
+ggplot(acs, aes(x = edu)) +
+  geom_bar()
+```
+
+3.1.  one variable
+filter(!is.na(edu)) --> for filterşng na
+|> ---->pipe oparoru for doing code step by step
+coord_flip() ----> for changing x and y axis
+```{r}
+acs |> 
+  filter(!is.na(edu)) |> 
+  ggplot(aes(x = edu)) +
+  geom_bar() +
+  coord_flip()
+
+```
+
+mine
+```{r}
+edu_without_na <- na.omit(acs)
+ggplot(edu_without_na, aes(x= edu))+ 
+geom_bar() +
+coord_flip()
+```
+
+3.2. Continuous
+3.2.1 Histograms
+```{r}
+ggplot(acs, aes(x = age)) +
+  geom_histogram()
+```
+
+binwith for frequence
+```{r}
+ggplot(acs, aes(x = age)) +
+  geom_histogram(binwidth = 10)
+```
+
+
+3.2.2 Density Plots
+```{r}
+ggplot(acs, aes(x = age)) +
+  geom_density()
+```
+
+
+```{r}
+ggplot(acs, aes(x = age)) +
+  geom_density(adjust = .2)
+```
+
+4. Two Variables
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+```
+
+4.1 One Discrete, One Continuous
+4.1.1 Barplots
+
+
+```{r}
+acs |> 
+  filter(!is.na(edu)) |> 
+  group_by(edu) |> 
+  summarize(income = mean(income, na.rm = T)) |> 
+  ggplot(aes(x = edu, y = income)) +
+  geom_col() + 
+  coord_flip() +
+  geom_text(aes(label = round(income)), 
+            hjust = -.2)
+```
+
+
+4.1.2 Boxplots
+coord_flip() can be used to rotate the plot 90 degrees.
+```{r}
+acs |> 
+  filter(!is.na(edu), !is.na(income)) |> 
+  ggplot(aes(x = edu, y = income)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+The boxplot has covered up the violin plot, so we can reduce the width of the boxplot with the width argument.
+```{r}
+ggplot(acs, aes(x = race, y = age)) +
+  geom_violin() +
+  geom_boxplot(width = .25) +
+  coord_flip()
+```
+
+4.2 Two Continuous
+4.2.1 Scatterplots
+```{r}
+ggplot(acs, aes(x = age, y = income)) +
+  geom_point()
+```
+
+```{r}
+ggplot(acs, aes(x = age, y = income)) +
+  geom_point(size = .5)
+```
+```{r}
+ggplot(acs, aes(x = age, y = income)) +
+  geom_point(alpha = .1)
+```
+We can also add a linear fit of y ~ x by using geom_smooth() and setting its method to "lm".
+```{r}
+ggplot(acs, aes(x = age, y = income)) +
+  geom_point(alpha = .1) +
+  geom_smooth(method = "lm")
+```
+
+
+4.3 Two Discrete
+4.3.1 Scatterplots
+```{r}
+table(acs$edu, acs$race, useNA = "ifany")
+```
+```{r}
+prop.table(table(acs$edu, acs$race, useNA = "ifany"))
+```
+
+```{r}
+ggplot(acs, aes(x = race, y = edu)) +
+  geom_jitter()
+```
+
+4.3.2 Barplots
+Setting the position argument of geom_bar() to "dodge" places the bars side by side.
+```{r}
+ggplot(acs, aes(x = race, fill = edu)) +
+  geom_bar(position = "dodge")
+```
+
+
+```{r}
+ggplot(acs, aes(x = race, fill = edu)) +
+  geom_bar(position = "stack")
+```
+
+using facet_grid(). Faceting allows us to split our one plot into several panels
+ use round() within our ggplot call to round perc to the nearest tenth.
+```{r}
+acs |> 
+  filter(!is.na(edu)) |> 
+  group_by(race, edu) |> 
+  summarize(n = n()) |> 
+  mutate(perc = 100*n/sum(n)) |> 
+  ggplot(aes(x = race, y = perc, fill = edu)) +
+  geom_col() +
+  facet_grid(~ edu) + 
+  coord_flip() +
+  ylim(c(0, 90)) +
+  geom_text(aes(label = round(perc, 1)), hjust = -.1)
+```
+
+5. Three Variables
+More than two variables can be visualized without resorting to 3D plots by mapping the third variable to some other aesthetic, or by creating a separate plot (“facet”) for each of its values.
+
+5.1 With Aesthetics
+Note that since female is numeric, ggplot created a legend with a continuous color scale.
+```{r}
+ggplot(acs_small, aes(x = age, y = income, color = female)) +
+  geom_point()
+```
+To correct this, we can either change our dataframe to make female a character or factor vector, or we can temporarily specify it as such when we create our plot.
+```{r}
+ggplot(acs_small, aes(x = age, y = income, color = as.factor(female))) +
+  geom_point()
+```
+
+
+```{r}
+ggplot(acs_small, aes(x = age, y = income, color = edu)) +
+  geom_point()
+```
+
+
+We can supply facet_wrap() with the formula ~ edu. 
+```{r}
+ggplot(acs_small, aes(x = age, y = income)) +
+  geom_point() +
+  facet_wrap(~ edu)
+```
+
+6.1. Adding and Changing Labels
+Labels can be added to a plot with labs() by assigning a character string to the aesthetic (x, y, shape, etc.).
+```{r}
+ggplot(acs_small, aes(x = age, y = income, 
+                       shape = as.factor(female))) +
+  geom_point() +
+  labs(title = "Income by Age, Sex, and Education",
+       caption = "Random sample of\nACS Dataset",
+       x = "Age",
+       y = "Income (in US Dollars)",
+       shape = "Sex") +
+  facet_wrap(~ edu) +
+  scale_shape_discrete(labels = c("Male", "Female"))
+```
+
+6.2. Changing Text and Axes
+Text size, font, angle, and position are all customizable. We can tell theme() what we would like to chang
+```{r}
+ggplot(acs_small, aes(x = age, y = income, 
+                       shape = as.factor(female))) +
+  geom_point() +
+  labs(title = "Income by Age, Sex, and Education",
+       caption = "Random sample of\nACS Dataset",
+       x = "Age",
+       y = "Income (in US Dollars)",
+       shape = "Sex") +
+  facet_wrap(~ edu) +
+  scale_shape_discrete(labels = c("Male", "Female")) +
+  theme(axis.title.x = element_text(size = 10, face = "italic"),
+        axis.title.y = element_text(size = 25, face = "bold"),
+        axis.text.y = element_text(angle = 20),
+        axis.ticks.length.x = unit(1, "cm"),
+        axis.ticks.x = element_line(arrow = arrow()),
+        axis.ticks.y = element_blank(),
+        legend.position = "bottom",
+        plot.title = element_text(angle = 15, vjust = -.2),
+        strip.text = element_blank()) +
+  scale_x_continuous(breaks = seq(0, 100, 20))
+```
+
+6.3 Changing Themes
+| Theme             | Features                                       |
+| ----------------- | ---------------------------------------------- |
+| `theme_gray()`    | Gray background, default theme                 |
+| `theme_bw()`      | White background, simple and professional look |
+| `theme_minimal()` | Very simple design with few lines              |
+```{r}
+myTheme <- theme(panel.border = element_rect(color = "black", fill = NA),
+                 panel.grid = element_line(color = "#EEEEEE"),
+                 panel.background = element_rect(fill = NA),
+                 legend.key = element_rect(fill = NA))
+
+ggplot(acs_small, aes(x = age, y = income, 
+                       shape = as.factor(female))) +
+  geom_point() +
+  labs(title = "Income by Age and Sex",
+       caption = "Random sample of\nACS Dataset",
+       x = "Age",
+       y = "Income (in US Dollars)",
+       shape = "Sex") +
+  scale_shape_discrete(labels = c("Male", "Female")) +
+  myTheme
+```
+
+
+7. Saving Plots
+devEMF is an R package used to save high-quality plots as EMF (vector image) files for documents or presentations.
+```{r}
+library(devEMF)
+
+ggplot(acs, aes(x = age)) +
+  geom_density()
+
+ggsave("plot.emf", width = 6, height = 4, device = {function(filename, ...) devEMF::emf(file = filename, ...)})
+ggsave("plot.pdf", width = 6, height = 4)
+ggsave("plot.png", width = 6, height = 4)
+```
+
+
+8. Exercises
+8.1 Working Backwards
+```{r}
+ggplot(acs_small, aes(x = age, y = income)) +
+  geom_point() +
+  geom_smooth(se = F, size = 3)
+```
+
+```{r}
+ggplot(acs_small, aes(x = age, y = income, color= edu)) +
+geom_point()
+
+```
+
+
+```{r}
+ggplot(acs_small, aes(x= age, y= maritalStatus)) +
+geom_col()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
