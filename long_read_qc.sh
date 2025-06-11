@@ -3,9 +3,4 @@ NanoPlot --ubam /users/project/gencode_006070/jlagarde/nanopore/sequencing_runs/
 #for mop4 (need nextflow)
 git clone --depth 1 --recurse-submodules https://github.com/biocorecrg/master_of_pores.git
 #for running
-nextflow run biocorecrg/master_of_pores \
--r MOP4-dev \
---input my_file.fastq \
---protocol direct_rna \
---basecaller_guppy "none" \
---outdir results_mop
+nextflow run mop_preprocess.nf -with-docker -params-file params.yaml -profile local
