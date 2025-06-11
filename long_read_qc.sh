@@ -1,5 +1,2 @@
-#NanoPLot long read
+#for nanoplot
 NanoPlot --ubam /users/project/gencode_006070/jlagarde/nanopore/sequencing_runs/runs/20240115/20240115_BLaER_T0_sc10xONT/20240115_BLaER_T0_sc10xONT/20240115_1628_X1_FAX02366_794829ec/FAX02366_20240115_1632_794829ec.bam -o /users/rg/baygun/nanoplot/nanoplot_sample_1 --N50
-
-# for taking the one file
-
