@@ -25,4 +25,5 @@ curl -s https://get.nextflow.io | bash
 git clone --depth 1 --recurse-submodules https://github.com/biocorecrg/MOP2.git
 cd MoP2; bash INSTALL.sh
 #for running ==> You can change the parameters either by changing params.config file or by feeding the parameters via command line:(bg for bagground)
+#NOTE: change the params.config file for input vs
 nextflow run mop_preprocess.nf -with-singularity > log.txt
